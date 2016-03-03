@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Hash;
 use App\User;
 use Validator;
+use Session;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+use Illuminate\Http\Request;
+use App\Http\Models\AuthModel as AuthUser;
 
 class AuthController extends Controller
 {
@@ -68,5 +73,31 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+
+    protected function internalLogin()
+    {
+        return view('admin.login');
+    }
+
+    protected function internalCheckUser(Request $request)
+    {
+        $username = $request->input('username');
+        $password = $request->input('password');
+
+        $check_auth= AuthUser::checkUser($username, $password);
+        //dd($check_auth);
+        if($check_auth == 'logged'){
+            return redirect('internal-bkn/dashboard');
+        }else{
+            Session::flash('message', $check_auth);
+            return redirect()->route('internal.login');
+        }
+    }
+
+    protected function internalLogout()
+    {
+        Session::flush();
+        return redirect()->route('internal.login');
     }
 }
